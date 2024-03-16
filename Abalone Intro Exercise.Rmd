@@ -1,0 +1,68 @@
+---
+title: "Abalone Intro Exercise"
+author: "Evan Hope"
+date: "2024-03-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The purpose of this exercise is to display my introductory knowledge of reading
+in a data set, appending a variable to the set, setting up a workflow, creating 
+a recipe, splitting data into training and test sets, and using the recipe and training set to help create predictions of the age of an abalone.
+
+Below is a walk through of my work.
+
+
+Before I begin, I will download the packages needed to conduct data manipulation
+and modeling. 
+
+```{r}
+install.packages("tidyverse")
+```
+
+```{r}
+install.packages("tidymodels")
+```
+
+```{r}
+install.packages("ISLR")
+```
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(ISLR)
+library(dplyr)
+```
+
+Now that the necessary packages are ready to go, I will now read in the abalone 
+data set.
+
+```{r}
+abalone_data = read.csv("C:/Users/Ordai/OneDrive/Desktop/School/Personal Projects/Abalone Intro Exercise/abalone.csv")
+```
+
+I will slightly modify the data set by adding an "age" variable. 
+
+```{r}
+abalone_data2 <- mutate(abalone_data, age = rings + 1.5)
+# The age (in years) of an abalone can be quickly estimated by adding 1.5 to
+# the number of rings found within the abalone. Hence why age = rings + 1.5
+
+glimpse(abalone_data2)
+```
+
+Note that my end goal of this exercise is to predict the age of an abalone by 
+creating a recipe that uses a combination of variables EXCLUDING the "rings" 
+variable. The "rings" variable as well as the formula used above (rings+1.5=age)
+will only be used as a reference to see how close my recipe comes to predicting 
+the actual age (rings + 1.5).
+
+
+
+
+
+
