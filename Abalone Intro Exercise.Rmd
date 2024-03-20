@@ -9,14 +9,17 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+#Introduction
+
 The purpose of this exercise is to display my introductory knowledge of reading
 in a data set, appending a variable to the set, setting up a workflow, creating 
 a recipe, splitting data into training and test sets, and using the recipe and training set to help create predictions of the age of an abalone.
 
 Below is a walk through of my work.
 
+#Package Installation
 
-Before I begin, I will download the packages needed to conduct data manipulation
+Before I begin, I will now download the packages needed to conduct data manipulation
 and modeling. 
 
 ```{r}
@@ -32,12 +35,18 @@ install.packages("ISLR")
 ```
 
 ```{r}
+install.packages("dplyr")
+```
+
+```{r}
 library(tidyverse)
 library(tidymodels)
 library(ISLR)
 library(dplyr)
 ```
 
+
+# Reading in the Data
 Now that the necessary packages are ready to go, I will now read in the abalone 
 data set.
 
@@ -49,8 +58,7 @@ I will slightly modify the data set by adding an "age" variable.
 
 ```{r}
 abalone_data2 <- mutate(abalone_data, age = rings + 1.5)
-# The age (in years) of an abalone can be quickly estimated by adding 1.5 to
-# the number of rings found within the abalone. Hence why age = rings + 1.5
+# The age (in years) of an abalone can be quickly estimated by adding 1.5 to the number of rings found within the abalone. Hence why age = rings + 1.5
 
 glimpse(abalone_data2)
 ```
@@ -59,10 +67,134 @@ Note that my end goal of this exercise is to predict the age of an abalone by
 creating a recipe that uses a combination of variables EXCLUDING the "rings" 
 variable. The "rings" variable as well as the formula used above (rings+1.5=age)
 will only be used as a reference to see how close my recipe comes to predicting 
-the actual age (rings + 1.5).
+the actual age (rings + 1.5). I will expand a little more on this shortly.
+
+
+#Data Splitting
+
+I will now set a seed and split the data.
+
+```{r}
+set.seed(909)
+# Setting a seed in order to get reproducible results. 
+
+abalone_split <- initial_split(abalone_data2, prop = 0.80, strata = age)
+abalone_train <- training(abalone_split)
+abalone_test <- testing(abalone_split)
+```
+
+#Creating a Recipe
+
+The reason why I am excluding the rings variable here is because I have 
+asserted that there is a direct relationship between the number of rings and 
+age. If I were to resume my analysis with the "rings" variable included, my prediction model would tell me that the rings variable is the only variable that matters when predicting the age. But for the sake of this exercise, I want to 
+show that I can create a model that can predict the age of an abalone without 
+using the rings variable.
+
+
+```{r}
+# First a simple recipe to reference from using the training set.
+
+simple_abalone_recipe <- recipe(age ~ ., data = abalone_train)
+```
+
+
+```{r}
+# Dummy coding the categorical variables while also centering and scaling the predictors...
+
+abalone_recipe <- recipe(age ~ type + longest_shell + diameter + height + whole_weight + shucked_weight + viscera_weight + shell_weight, data = abalone_train) %>%
+  step_dummy(all_nominal_predictors()) %>%
+  step_normalize(all_predictors())
+```
+
+
+#Creating a LInear Regression Model & Workflow
+
+```{r}
+#Setting up a linear regression model
+
+lm_model <- linear_reg() %>% 
+  set_engine("lm")
+```
+
+
+```{r}
+#Creating the workflow and adding our recipe
+
+lm_wflow <- workflow() %>% 
+  add_model(lm_model) %>% 
+  add_recipe(abalone_recipe)
+```
+
+
+```{r}
+#Fitting the linear model to the abalone training data
+lm_fit <- fit(lm_wflow, abalone_train)
+```
+
+
+#Results of the predictor variables
+```{r}
+lm_fit %>% 
+  # This returns the parsnip object:
+  extract_fit_parsnip() %>% 
+  # Now tidy the linear model object:
+  tidy()
+```
+ 
+ 
+Notice the p-values for each variable. Every variable EXCEPT the "longest shell" length and "type" for males has a p-value less than 0.05. Those that have a
+p-value less than 0.05 are known to be statistically significant. 
+ 
+ 
+#Predicting the age of an abalone using the new model!
+
+I will now see what age is predicted when I create a data frame (abalone) that 
+is a female ("I") whose longest shell is .50 cm, has a diameter of .10 cm, a 
+height of .30 cm, weighing 4 kg, etc.
+```{r}
+female_abalone_pred1 <- data.frame(type = 'I', longest_shell =.50, diameter = 0.10, height = 0.30, whole_weight = 4, shucked_weight = 1, viscera_weight = 2, shell_weight = 1)
+
+abalone_train_pred = predict(lm_fit, new_data = female_abalone_pred1)
+
+abalone_train_pred
+```
+
+As we can see, my model predicted that the age, given the information above,
+would be about 10.9 years.
+
+I will now come up with predictions for all of the observations within the 
+test set.
+
+```{r}
+library(yardstick)
+abalone_test_pred = predict(lm_fit, new_data = abalone_test)
+
+abalone_test_pred
+```
+
+
+#Model Performance and Metrics
+
+I will now create one last data set that combines the predictions that I have
+just computed above with the original test set in order to measure the accuracy 
+of my model.
 
 
 
+```{r}
+abalone_test_v2 <- mutate(abalone_test, abalone_test_pred)
+#combining the predictions with original test set
+
+abalone_metrics <- metric_set(rmse, rsq, mae)
+#calculating the root mean squared error, R-squared, and mean absolute error
+
+abalone_metrics(abalone_test_v2, truth = age, estimate = .pred)
+```
+
+As we can see from the metrics calculated above, the linear regression model 
+used to predict the age of an abalone based on several factors (excluding the #
+of rings) performed well.
 
 
 
