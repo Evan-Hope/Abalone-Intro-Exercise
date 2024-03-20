@@ -2,14 +2,16 @@
 title: "Abalone Intro Exercise"
 author: "Evan Hope"
 date: "2024-03-15"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#Introduction
+# Introduction
 
 The purpose of this exercise is to display my introductory knowledge of reading
 in a data set, appending a variable to the set, setting up a workflow, creating 
@@ -17,25 +19,25 @@ a recipe, splitting data into training and test sets, and using the recipe and t
 
 Below is a walk through of my work.
 
-#Package Installation
+# Package Installation
 
 Before I begin, I will now download the packages needed to conduct data manipulation
 and modeling. 
 
 ```{r}
-install.packages("tidyverse")
+#install.packages("tidyverse")
 ```
 
 ```{r}
-install.packages("tidymodels")
+#install.packages("tidymodels")
 ```
 
 ```{r}
-install.packages("ISLR")
+#install.packages("ISLR")
 ```
 
 ```{r}
-install.packages("dplyr")
+#install.packages("dplyr")
 ```
 
 ```{r}
@@ -70,7 +72,7 @@ will only be used as a reference to see how close my recipe comes to predicting
 the actual age (rings + 1.5). I will expand a little more on this shortly.
 
 
-#Data Splitting
+# Data Splitting
 
 I will now set a seed and split the data.
 
@@ -83,7 +85,7 @@ abalone_train <- training(abalone_split)
 abalone_test <- testing(abalone_split)
 ```
 
-#Creating a Recipe
+# Creating a Recipe
 
 The reason why I am excluding the rings variable here is because I have 
 asserted that there is a direct relationship between the number of rings and 
@@ -108,7 +110,7 @@ abalone_recipe <- recipe(age ~ type + longest_shell + diameter + height + whole_
 ```
 
 
-#Creating a LInear Regression Model & Workflow
+# Creating a LInear Regression Model & Workflow
 
 ```{r}
 #Setting up a linear regression model
@@ -133,7 +135,7 @@ lm_fit <- fit(lm_wflow, abalone_train)
 ```
 
 
-#Results of the predictor variables
+# Results of the predictor variables
 ```{r}
 lm_fit %>% 
   # This returns the parsnip object:
@@ -147,7 +149,7 @@ Notice the p-values for each variable. Every variable EXCEPT the "longest shell"
 p-value less than 0.05 are known to be statistically significant. 
  
  
-#Predicting the age of an abalone using the new model!
+# Predicting the age of an abalone using the new model!
 
 I will now see what age is predicted when I create a data frame (abalone) that 
 is a female ("I") whose longest shell is .50 cm, has a diameter of .10 cm, a 
@@ -174,7 +176,7 @@ abalone_test_pred
 ```
 
 
-#Model Performance and Metrics
+# Model Performance and Metrics
 
 I will now create one last data set that combines the predictions that I have
 just computed above with the original test set in order to measure the accuracy 
